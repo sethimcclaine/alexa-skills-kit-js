@@ -86,7 +86,7 @@ function handleHelpRequest (intent, session, response) {
 
 function handleEndSession(intent, session, response) {
     var speechOutput = {
-            speech: "Goodbye",
+            speech: "Flowdock... OUT!",
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
     };
     response.tell(speechOutput);
@@ -112,7 +112,6 @@ function getUserListFromFlowdock(returnType, callback) {
             body += chunk;
         });
         res.on('end', function () {
-            /*
             if(returnType !== 'array') { 
                 var users = {};
                 body = JSON.parse(body);
@@ -121,16 +120,16 @@ function getUserListFromFlowdock(returnType, callback) {
                 }
                 callback(users);
             } else { 
-            }
-            */
 
                 var userArray = JSON.parse(body);
-                /*
+                var message = "";
                 for (var i = 0; i < userArray.length; i++) {
                     message += ", " + userArray[i].name;
                 }
-                */
-                callback(userArray.length + " Users");
+
+                callback(message);
+            }
+
 
         });
     }).on('error', function (e) {
