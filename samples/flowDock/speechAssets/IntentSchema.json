@@ -1,5 +1,14 @@
 {
   "intents": [
+    { 
+      "intent": "ObserveFlowIntent",
+      "slots": [
+        {
+          "name": "flow",
+          "type": "FLOW"
+        }
+      ]
+    }, 
     {
       "intent": "GetFirstEventIntent",
       "slots": [
@@ -8,18 +17,11 @@
           "type": "AMAZON.DATE"
         }
       ]
-    },
-    {
-      "intent": "GetNextEventIntent"
-    },
-    {
-      "intent": "AMAZON.HelpIntent"
-    },
-    {
-      "intent": "AMAZON.StopIntent"
-    },
-    {
-      "intent": "AMAZON.CancelIntent"
-    }
+    }, 
+    { "intent": "ListUsersIntent" }, 
+    { "intent": "GetNextEventIntent" }, 
+    { "intent": "AMAZON.HelpIntent" }, 
+    { "intent": "AMAZON.StopIntent" }, 
+    { "intent": "AMAZON.CancelIntent" }
   ]
 }

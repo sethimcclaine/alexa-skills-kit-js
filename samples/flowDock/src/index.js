@@ -1,125 +1,68 @@
-/**
-    Copyright 2014-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-
-    Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
-
-        http://aws.amazon.com/apache2.0/
-
-    or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-*/
-
-/**
- * This sample shows how to create a Lambda function for handling Alexa Skill requests that:
- *
- * - Web service: communicate with an external web service to get events for specified days in history (Wikipedia API)
- * - Pagination: after obtaining a list of events, read a small subset of events and wait for user prompt to read the next subset of events by maintaining session state
- * - Dialog and Session state: Handles two models, both a one-shot ask and tell model, and a multi-turn dialog model.
- * - SSML: Using SSML tags to control how Alexa renders the text-to-speech.
- *
- * Examples:
- * One-shot model:
- * User:  "Alexa, ask History Buff what happened on August thirtieth."
- * Alexa: "For August thirtieth, in 2003, [...] . Wanna go deeper in history?"
- * User: "No."
- * Alexa: "Good bye!"
- *
- * Dialog model:
- * User:  "Alexa, open History Buff"
- * Alexa: "History Buff. What day do you want events for?"
- * User:  "August thirtieth."
- * Alexa: "For August thirtieth, in 2003, [...] . Wanna go deeper in history?"
- * User:  "Yes."
- * Alexa: "In 1995, Bosnian war [...] . Wanna go deeper in history?"
- * User: "No."
- * Alexa: "Good bye!"
- */
-
-
-/**
- * App ID for the skill
- */
+// App ID for the skill
 var APP_ID = undefined; //replace with 'amzn1.echo-sdk-ams.app.[your-unique-value-here]';
-
 var https = require('https');
 
-/**
- * The AlexaSkill Module that has the AlexaSkill prototype and helper functions
- */
+// The AlexaSkill Module that has the AlexaSkill prototype and helper functions
 var AlexaSkill = require('./AlexaSkill');
 
-/**
- * URL prefix to download history content from Wikipedia
- */
+// URL prefix to download history content from Wikipedia
 var urlPrefix = 'https://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&explaintext=&exsectionformat=plain&redirects=&titles=';
 
-/**
- * Variable defining number of events to be read at one time
- */
+// Variable defining number of events to be read at one time
 var paginationSize = 3;
-
-/**
- * Variable defining the length of the delimiter between events
- */
+// Variable defining the length of the delimiter between events
 var delimiterSize = 2;
 
 /**
- * HistoryBuffSkill is a child of AlexaSkill.
- * To read more about inheritance in JavaScript, see the link below.
- *
- * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Introduction_to_Object-Oriented_JavaScript#Inheritance
+ * FlowdockSkill is a child of AlexaSkill.
  */
-var HistoryBuffSkill = function() {
+var FlowdockSkill = function() {
     AlexaSkill.call(this, APP_ID);
 };
 
 // Extend AlexaSkill
-HistoryBuffSkill.prototype = Object.create(AlexaSkill.prototype);
-HistoryBuffSkill.prototype.constructor = HistoryBuffSkill;
+FlowdockSkill.prototype = Object.create(AlexaSkill.prototype);
+FlowdockSkill.prototype.constructor = FlowdockSkill;
 
-HistoryBuffSkill.prototype.eventHandlers.onSessionStarted = function (sessionStartedRequest, session) {
-    console.log("HistoryBuffSkill onSessionStarted requestId: " + sessionStartedRequest.requestId
-        + ", sessionId: " + session.sessionId);
-
+FlowdockSkill.prototype.eventHandlers.onSessionStarted = function (sessionStartedRequest, session) {
+    console.log("FlowdockSkill onSessionStarted requestId: " + sessionStartedRequest.requestId + ", sessionId: " + session.sessionId);
     // any session init logic would go here
 };
 
-HistoryBuffSkill.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
-    console.log("HistoryBuffSkill onLaunch requestId: " + launchRequest.requestId + ", sessionId: " + session.sessionId);
+FlowdockSkill.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
+    console.log("FlowdockSkill onLaunch requestId: " + launchRequest.requestId + ", sessionId: " + session.sessionId);
     getWelcomeResponse(response);
 };
 
-HistoryBuffSkill.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, session) {
+FlowdockSkill.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, session) {
     console.log("onSessionEnded requestId: " + sessionEndedRequest.requestId
         + ", sessionId: " + session.sessionId);
-
-    // any session cleanup logic would go here
 };
 
-HistoryBuffSkill.prototype.intentHandlers = {
-
+FlowdockSkill.prototype.intentHandlers = {
+    "ObserveFlowIntent": function (intent, session, response) {
+        handleObserveFlowIntentRequest(intent, session, response);
+    },
     "GetFirstEventIntent": function (intent, session, response) {
         handleFirstEventRequest(intent, session, response);
     },
-
+    "ListUsersIntent": function (intent, session, response) { 
+        handleListUsersIntent(intenet, session, response);
+    },
     "GetNextEventIntent": function (intent, session, response) {
         handleNextEventRequest(intent, session, response);
     },
-
     "AMAZON.HelpIntent": function (intent, session, response) {
-        var speechText = "With History Buff, you can get historical events for any day of the year.  " +
-            "For example, you could say today, or August thirtieth, or you can say exit. Now, which day do you want?";
-        var repromptText = "Which day do you want?";
         var speechOutput = {
-            speech: speechText,
+            speech: "With Flowdock, you can monitor flows for your organization",
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
         };
         var repromptOutput = {
-            speech: repromptText,
+            speech: "Which flow would you like to monitor?",
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
         };
         response.ask(speechOutput, repromptOutput);
     },
-
     "AMAZON.StopIntent": function (intent, session, response) {
         var speechOutput = {
                 speech: "Goodbye",
@@ -127,7 +70,6 @@ HistoryBuffSkill.prototype.intentHandlers = {
         };
         response.tell(speechOutput);
     },
-
     "AMAZON.CancelIntent": function (intent, session, response) {
         var speechOutput = {
                 speech: "Goodbye",
@@ -143,24 +85,51 @@ HistoryBuffSkill.prototype.intentHandlers = {
 
 function getWelcomeResponse(response) {
     // If we wanted to initialize the session to have some attributes we could add those here.
-    var cardTitle = "This Day in History";
-    var repromptText = "With History Buff, you can get historical events for any day of the year.  For example, you could say today, or August thirtieth. Now, which day do you want?";
-    var speechText = "<p>History buff.</p> <p>What day do you want events for?</p>";
-    var cardOutput = "History Buff. What day do you want events for?";
+
     // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
-
     var speechOutput = {
-        speech: "<speak>" + speechText + "</speak>",
+        //speech: "<speak><p>History buff.</p> <p>What day do you want events for?</p></speak>",
+        speech: "<speak><p>Flowdock.</p> <p>Which flow do you want to monitor?</p></speak>",
         type: AlexaSkill.speechOutputType.SSML
     };
     var repromptOutput = {
-        speech: repromptText,
+        //speech: "With History Buff, you can get historical events for any day of the year.  For example, you could say today, or August thirtieth. Now, which day do you want?",
+        speech: "With Flowdock, you can monitor flows for your organization",
         type: AlexaSkill.speechOutputType.PLAIN_TEXT
     };
+
+    var cardTitle = "This Day in History";
+    //var cardOutput = "History Buff. What day do you want events for?";
+    var cardOutput = "Flowdock. Which flow do you want to monitor?";
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardOutput);
 }
 
+function handleObserveFlowIntentRequest(intent, session, response) {
+    response.tell({
+        speech: "TODO Observe Flow",
+        type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    });
+}
+function handleListUsersIntent(intent, session, response) {
+    response.tell({
+        speech: "in progress:: List Users",
+        type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    });
+    /*
+    getUserListFromFlowdock(function(users) {
+
+        var speach = ""
+        for (var i = 0; i < users.length; i++) {
+            speach += "<p>"+users[i].name+"</p>";
+        }
+        response.tell({
+            speech: speach,
+            type: AlexaSkill.speechOutputType.PLAIN_TEXT
+        });
+    });
+    */
+}
 /**
  * Gets a poster prepares the speech to reply to the user.
  */
@@ -258,6 +227,29 @@ function handleNextEventRequest(intent, session, response) {
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardContent);
 }
 
+function getUserListFromFlowdock(callback) {
+    var cred = '189d5c6a1f949e47c62eb886bbc81351',
+        pass = 'password',
+        org = 'rally-software',
+        flow = 'ie';
+
+    http.get('https://'+cred+":"+pass+'@api.flowdock.com/users/', function (res) {
+        var body = "";
+        res.on('data', function (chunk) {
+            body += JSON.parse(chunk);
+        });
+        res.on('end', function () {
+            for (var i = 0; i < res.length; i++) {
+                users[res[i].id] = res[i];
+            }
+            callback(users);
+        });
+    }
+    ).on('error', function (e) {
+        console.log("Got error: ", e);
+    });
+}
+
 function getJsonEventsFromWikipedia(day, date, eventCallback) {
     var url = urlPrefix + day + '_' + date;
 
@@ -313,7 +305,7 @@ function parseJson(inputText) {
 // Create the handler that responds to the Alexa Request.
 exports.handler = function (event, context) {
     // Create an instance of the HistoryBuff Skill.
-    var skill = new HistoryBuffSkill();
+    var skill = new FlowdockSkill();
     skill.execute(event, context);
 };
 

@@ -1,28 +1,9 @@
-/**
- * This sample shows how to create a Lambda function for handling Alexa Skill requests that:
- *
- * - Web service: communicate with an external web service to get events for specified days in history (Wikipedia API)
- * - Pagination: after obtaining a list of events, read a small subset of events and wait for user prompt to read the next subset of events by maintaining session state
- * - Dialog and Session state: Handles two models, both a one-shot ask and tell model, and a multi-turn dialog model.
- * - SSML: Using SSML tags to control how Alexa renders the text-to-speech.
- *
- * Examples:
- * One-shot model:
- * User:  "Alexa, ask History Buff what happened on August thirtieth."
- * Alexa: "For August thirtieth, in 2003, [...] . Wanna go deeper in history?"
- * User: "No."
- * Alexa: "Good bye!"
- *
- * Dialog model:
- * User:  "Alexa, open History Buff"
- * Alexa: "History Buff. What day do you want events for?"
- * User:  "August thirtieth."
- * Alexa: "For August thirtieth, in 2003, [...] . Wanna go deeper in history?"
- * User:  "Yes."
- * Alexa: "In 1995, Bosnian war [...] . Wanna go deeper in history?"
- * User: "No."
- * Alexa: "Good bye!"
- */
+ObserveFlowIntent monitor {flow}
+ObserveFlowIntent monitor
+ObserveFlowIntent observe {flow}
+ObserveFlowIntent observe 
+ObserveFlowIntent watch {flow}
+ObserveFlowIntent watch 
 
 GetFirstEventIntent get events for {day}
 GetFirstEventIntent give me events for {day}
@@ -30,11 +11,18 @@ GetFirstEventIntent what happened on {day}
 GetFirstEventIntent what happened
 GetFirstEventIntent {day}
 
+ListUsersIntent users
+ListUsersIntent get users
+ListUsersIntent list users
+
 GetNextEventIntent yes
 GetNextEventIntent yup
 GetNextEventIntent sure
 GetNextEventIntent yes please
 
+AMAZON.StopIntent done
+AMAZON.StopIntent stop
+AMAZON.StopIntent cancel
 AMAZON.StopIntent no
 AMAZON.StopIntent nope
 AMAZON.StopIntent no thanks
