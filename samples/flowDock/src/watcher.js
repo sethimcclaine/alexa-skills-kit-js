@@ -39,4 +39,7 @@ watcher
 
 for (var i = 0; i < files.length; i++) {
     watcher.add(files[i]);
+    console.log("Watching: "+files[i]);
 }
+
+log('::Watcher Started::');

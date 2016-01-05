@@ -5,9 +5,6 @@ var https = require('https');
 // The AlexaSkill Module that has the AlexaSkill prototype and helper functions
 var AlexaSkill = require('./AlexaSkill');
 
-// URL prefix to download history content from Wikipedia
-var urlPrefix = 'https://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&explaintext=&exsectionformat=plain&redirects=&titles=';
-
 // Variable defining number of events to be read at one time
 var paginationSize = 3;
 // Variable defining the length of the delimiter between events
@@ -44,18 +41,7 @@ FlowdockSkill.prototype.intentHandlers = {
     "GetFirstEventIntent": handleFirstEventRequest,
     "ListUsersIntent": handleListUsersIntent,
     "GetNextEventIntent": handleNextEventRequest,
-
-    "AMAZON.HelpIntent": function (intent, session, response) {
-        var speechOutput = {
-            speech: "With Flowdock, you can monitor flows for your organization",
-            type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        };
-        var repromptOutput = {
-            speech: "Which flow would you like to monitor?",
-            type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        };
-        response.ask(speechOutput, repromptOutput);
-    },
+    "AMAZON.HelpIntent": handleHelpRequest,
     "AMAZON.StopIntent": handleEndSession,
     "AMAZON.CancelIntent": handleEndSession 
 };
@@ -86,6 +72,18 @@ function getWelcomeResponse(response) {
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardOutput);
 }
 
+function handleHelpRequest (intent, session, response) {
+    var speechOutput = {
+        speech: "With Flowdock, you can monitor flows for your organization",
+        type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    };
+    var repromptOutput = {
+        speech: "Which flow would you like to monitor?",
+        type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    };
+    response.ask(speechOutput, repromptOutput);
+}
+
 function handleEndSession(intent, session, response) {
     var speechOutput = {
             speech: "Goodbye",
@@ -101,24 +99,51 @@ function handleObserveFlowIntentRequest(intent, session, response) {
     });
 }
 
-function handleListUsersIntent(intent, session, response) {
-    response.tell({
-        speech: "in progress:: List Users",
-        type: AlexaSkill.speechOutputType.PLAIN_TEXT
-    });
-    /*
-    getUserListFromFlowdock(function(users) {
+function getUserListFromFlowdock(returnType, callback) {
+    var cred = '189d5c6a1f949e47c62eb886bbc81351',
+        pass = 'password',
+        org = 'rally-software',
+        flow = 'ie';
+    var url = 'https://'+cred+":"+pass+'@api.flowdock.com/users/';
 
-        var speach = ""
-        for (var i = 0; i < users.length; i++) {
-            speach += "<p>"+users[i].name+"</p>";
-        }
+    https.get(url, function (res) {
+        var body = "";
+        res.on('data', function (chunk) {
+            body += chunk;
+        });
+        res.on('end', function () {
+            /*
+            if(returnType !== 'array') { 
+                var users = {};
+                body = JSON.parse(body);
+                for (var i = 0; i < body.length; i++) {
+                    users[body[i].id] = body[i];
+                }
+                callback(users);
+            } else { 
+                var userArray = JSON.parse(body);
+                for (var i = 0; i < userArray.length; i++) {
+                    message += "<p>" + userArray[i].name + "</p>";
+                }
+                callback(message);
+            }
+            */
+            callback("greatSuccess!");
+        });
+    }).on('error', function (e) {
+        callback('callback failed');
+        console.log("Got error: ", e);
+    });
+}
+
+function handleListUsersIntent(intent, session, response) {
+    var callback = function(message) {
         response.tell({
-            speech: speach,
+            speech: message,  
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
         });
-    });
-    */
+    }
+    getUserListFromFlowdock('array', callback);
 }
 /**
  * Gets a poster prepares the speech to reply to the user.
@@ -217,30 +242,9 @@ function handleNextEventRequest(intent, session, response) {
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardContent);
 }
 
-function getUserListFromFlowdock(callback) {
-    var cred = '189d5c6a1f949e47c62eb886bbc81351',
-        pass = 'password',
-        org = 'rally-software',
-        flow = 'ie';
-
-    http.get('https://'+cred+":"+pass+'@api.flowdock.com/users/', function (res) {
-        var body = "";
-        res.on('data', function (chunk) {
-            body += JSON.parse(chunk);
-        });
-        res.on('end', function () {
-            for (var i = 0; i < res.length; i++) {
-                users[res[i].id] = res[i];
-            }
-            callback(users);
-        });
-    }
-    ).on('error', function (e) {
-        console.log("Got error: ", e);
-    });
-}
-
 function getJsonEventsFromWikipedia(day, date, eventCallback) {
+    // URL prefix to download history content from Wikipedia
+    var urlPrefix = 'https://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&explaintext=&exsectionformat=plain&redirects=&titles=';
     var url = urlPrefix + day + '_' + date;
 
     https.get(url, function(res) {
