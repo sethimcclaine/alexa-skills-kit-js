@@ -40,18 +40,11 @@ FlowdockSkill.prototype.eventHandlers.onSessionEnded = function (sessionEndedReq
 };
 
 FlowdockSkill.prototype.intentHandlers = {
-    "ObserveFlowIntent": function (intent, session, response) {
-        handleObserveFlowIntentRequest(intent, session, response);
-    },
-    "GetFirstEventIntent": function (intent, session, response) {
-        handleFirstEventRequest(intent, session, response);
-    },
-    "ListUsersIntent": function (intent, session, response) { 
-        handleListUsersIntent(intenet, session, response);
-    },
-    "GetNextEventIntent": function (intent, session, response) {
-        handleNextEventRequest(intent, session, response);
-    },
+    "ObserveFlowIntent": handleObserveFlowIntentRequest,
+    "GetFirstEventIntent": handleFirstEventRequest,
+    "ListUsersIntent": handleListUsersIntent,
+    "GetNextEventIntent": handleNextEventRequest,
+
     "AMAZON.HelpIntent": function (intent, session, response) {
         var speechOutput = {
             speech: "With Flowdock, you can monitor flows for your organization",
@@ -63,20 +56,8 @@ FlowdockSkill.prototype.intentHandlers = {
         };
         response.ask(speechOutput, repromptOutput);
     },
-    "AMAZON.StopIntent": function (intent, session, response) {
-        var speechOutput = {
-                speech: "Goodbye",
-                type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        };
-        response.tell(speechOutput);
-    },
-    "AMAZON.CancelIntent": function (intent, session, response) {
-        var speechOutput = {
-                speech: "Goodbye",
-                type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        };
-        response.tell(speechOutput);
-    }
+    "AMAZON.StopIntent": handleEndSession,
+    "AMAZON.CancelIntent": handleEndSession 
 };
 
 /**
@@ -105,12 +86,21 @@ function getWelcomeResponse(response) {
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardOutput);
 }
 
+function handleEndSession(intent, session, response) {
+    var speechOutput = {
+            speech: "Goodbye",
+            type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    };
+    response.tell(speechOutput);
+}
+
 function handleObserveFlowIntentRequest(intent, session, response) {
     response.tell({
         speech: "TODO Observe Flow",
         type: AlexaSkill.speechOutputType.PLAIN_TEXT
     });
 }
+
 function handleListUsersIntent(intent, session, response) {
     response.tell({
         speech: "in progress:: List Users",
