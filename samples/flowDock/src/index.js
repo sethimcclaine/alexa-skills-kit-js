@@ -121,14 +121,17 @@ function getUserListFromFlowdock(returnType, callback) {
                 }
                 callback(users);
             } else { 
-                var userArray = JSON.parse(body);
-                for (var i = 0; i < userArray.length; i++) {
-                    message += "<p>" + userArray[i].name + "</p>";
-                }
-                callback(message);
             }
             */
-            callback("greatSuccess!");
+
+                var userArray = JSON.parse(body);
+                /*
+                for (var i = 0; i < userArray.length; i++) {
+                    message += ", " + userArray[i].name;
+                }
+                */
+                callback(userArray.length + " Users");
+
         });
     }).on('error', function (e) {
         callback('callback failed');
