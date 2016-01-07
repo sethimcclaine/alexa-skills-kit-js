@@ -5,20 +5,10 @@ ObserveFlowIntent observe
 ObserveFlowIntent watch {flow}
 ObserveFlowIntent watch 
 
-GetFirstEventIntent get events for {day}
-GetFirstEventIntent give me events for {day}
-GetFirstEventIntent what happened on {day}
-GetFirstEventIntent what happened
-GetFirstEventIntent {day}
-
 ListUsersIntent users
 ListUsersIntent get users
+ListUsersIntent get user list
 ListUsersIntent list users
-
-GetNextEventIntent yes
-GetNextEventIntent yup
-GetNextEventIntent sure
-GetNextEventIntent yes please
 
 AMAZON.StopIntent done
 AMAZON.StopIntent stop

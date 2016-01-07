@@ -11,7 +11,7 @@ var onChange = function(path) {
     log("\n\n");
     log('--------------------------');
     //zipping all files that end with .js
-    exec("zip Archive *.js; ls -l;", function (error, stdout, stderr) {
+    exec("zip Archive *.js node_modules; ls -l;", function (error, stdout, stderr) {
         sys.print('stdout: ' + stdout);
     });
 
