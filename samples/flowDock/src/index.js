@@ -41,7 +41,8 @@ FlowdockSkill.prototype.eventHandlers.onSessionEnded = function (sessionEndedReq
 FlowdockSkill.prototype.intentHandlers = {
     "ObserveFlowIntent": handleObserveFlowIntentRequest,
     "ListUsersIntent": handleListUsersRequest,
-    "PostMessageIntent": handlePostMessageRequest,
+    "PostFlowMessageIntent": handlePostFlowMessageRequest,
+    "PostPrivateMessageIntent": handlePostPrivateMessageRequest,
     "AMAZON.HelpIntent": handleHelpRequest,
     "AMAZON.StopIntent": handleEndSession,
     "AMAZON.CancelIntent": handleEndSession 
@@ -49,15 +50,14 @@ FlowdockSkill.prototype.intentHandlers = {
 
 function getWelcomeResponse(response) {
     var speechOutput = {
-        speech: "<speak><p>Flowdock.</p> <p>Available options are watch, users, and send</p></speak>",
+        speech: "<speak><p>Flowdock... Ready for duty!</p></speak>",
         type: AlexaSkill.speechOutputType.SSML
     };
     var repromptOutput = {
-        speech: "With Flowdock, you can monitor flows for your organization",
+        speech: "Available options are 'watch', 'users', 'private message' and 'flow message'",
         type: AlexaSkill.speechOutputType.PLAIN_TEXT
     };
-//@TODO replace card title
-    var cardTitle = "This Day in History";
+    var cardTitle = "This Day in History";//@TODO replace card title
     var cardOutput = "Flowdock. Which flow do you want to monitor?";
     response.askWithCard(speechOutput, repromptOutput, cardTitle, cardOutput);
 }
@@ -114,32 +114,34 @@ function handleListUsersRequest(intent, session, response) {
     getUserListFromFlowdock('array', callback);
 }
 
-function handlePostMessageRequest(intent, session, response) {
-    var message = "Hi KG";
+function handlePostPrivateMessageRequest(intent, session, response) {
+    var message = intent.slots.msg.value;
     var callback = function(message) {
         response.tell({
             speech: message,  
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
         });
     }
-    postMessageToFlowdock(message, callback);
+    postPrivateMessageToFlowdock(message, callback);
 }
-
-function postMessageToFlowdock(message, callback) {
-    var url = 'https://'+cred+':'+pass+'@api.flowdock.com/flows/'+org+'/'+flow+'/messages';
-    var date = new Date();
-
-     var hour = date.getHours();
-     hour = (hour < 10 ? "0" : "") + hour;
-
-     var min  = date.getMinutes();
-     min = (min < 10 ? "0" : "") + min;
+function handlePostFlowMessageRequest(intent, session, response) {
+    var message = intent.slots.msg.value;
+    var callback = function(message) {
+        response.tell({
+            speech: message,  
+            type: AlexaSkill.speechOutputType.PLAIN_TEXT
+        });
+    }
+    postFlowMessageToFlowdock(message, callback);
+}
+function postMessageToFlowdock(url, message, callback) {
 
     var options = { method: 'POST',
         url: url,
         qs: { 
             event: 'message',
-            content: message + ' (message sent via Alexa)' 
+            tags: '#alexa',
+            content: message 
         },
         headers: { 
             'postman-token': '565ef014-b85a-14b8-69c8-29a393241cec',
@@ -148,15 +150,26 @@ function postMessageToFlowdock(message, callback) {
     };
 
     request(options, function (error, response, body) {
-        var message = 'Message sent successfully';
         if (error) {
-            //console.log('Error: '+error);
             callback('Error sending message: ' + message);
         } else {
             callback('Message Sent: ' + message);
         }
-        //console.log(body);
     });
+}
+
+function postFlowMessageToFlowdock(message, callback) {
+    var url = 'https://'+cred+':'+pass+'@api.flowdock.com/flows/'+org+'/'+flow+'/messages';
+
+    postMessageToFlowdock(url, message, callback);
+}
+
+function postPrivateMessageToFlowdock(message, callback) {
+    var ashley = 128632;
+    var user = ashley;
+    var url = 'https://'+cred+':'+pass+'@api.flowdock.com/private/'+user+'/messages';
+
+    postMessageToFlowdock(url, message, callback);
 }
 
 function getUserListFromFlowdock(returnType, callback) {

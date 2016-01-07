@@ -1,16 +1,20 @@
 ObserveFlowIntent monitor {flow}
 ObserveFlowIntent monitor
 ObserveFlowIntent observe {flow}
-ObserveFlowIntent observe 
+ObserveFlowIntent observe
 ObserveFlowIntent watch {flow}
-ObserveFlowIntent watch 
+ObserveFlowIntent watch
 
 ListUsersIntent users
 ListUsersIntent get users
 ListUsersIntent get user list
 ListUsersIntent list users
 
-PostMessageIntent send {one two three four five|msg}
+PostFlowMessageIntent flow message 
+PostFlowMessageIntent flow message {one two three four five|msg}
+
+PostPrivateMessageIntent private message
+PostPrivateMessageIntent private message {one two three four five|msg}
 
 AMAZON.StopIntent done
 AMAZON.StopIntent stop

@@ -1,6 +1,6 @@
 {
   "intents": [
-    { 
+    {
       "intent": "ObserveFlowIntent",
       "slots": [
         {
@@ -8,16 +8,25 @@
           "type": "FLOW"
         }
       ]
-    }, 
-    { 
-      "intent": "PostMessageIntent",
+    },
+    {
+      "intent": "PostFlowMessageIntent",
       "slots": [
         {
-          "name": "message",
+          "name": "msg",
           "type": "AMAZON.LITERAL"
         }
       ]
-    }, 
+    },
+    {
+      "intent": "PostPrivateMessageIntent",
+      "slots": [
+        {
+          "name": "msg",
+          "type": "AMAZON.LITERAL"
+        }
+      ]
+    },
     {
       "intent": "GetFirstEventIntent",
       "slots": [
@@ -26,11 +35,11 @@
           "type": "AMAZON.DATE"
         }
       ]
-    }, 
-    { "intent": "ListUsersIntent" }, 
-    { "intent": "GetNextEventIntent" }, 
-    { "intent": "AMAZON.HelpIntent" }, 
-    { "intent": "AMAZON.StopIntent" }, 
+    },
+    { "intent": "ListUsersIntent" },
+    { "intent": "GetNextEventIntent" },
+    { "intent": "AMAZON.HelpIntent" },
+    { "intent": "AMAZON.StopIntent" },
     { "intent": "AMAZON.CancelIntent" }
   ]
 }
