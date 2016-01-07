@@ -9,6 +9,15 @@
         }
       ]
     }, 
+    { 
+      "intent": "PostMessageIntent",
+      "slots": [
+        {
+          "name": "message",
+          "type": "AMAZON.LITERAL"
+        }
+      ]
+    }, 
     {
       "intent": "GetFirstEventIntent",
       "slots": [

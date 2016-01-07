@@ -10,6 +10,8 @@ ListUsersIntent get users
 ListUsersIntent get user list
 ListUsersIntent list users
 
+PostMessageIntent send {one two three four five|msg}
+
 AMAZON.StopIntent done
 AMAZON.StopIntent stop
 AMAZON.StopIntent cancel

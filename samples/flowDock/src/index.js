@@ -1,11 +1,10 @@
 // App ID for the skill
 var APP_ID = undefined; //replace with 'amzn1.echo-sdk-ams.app.[your-unique-value-here]';
+
 var https = require('https');
-/*
 var EventSource = require('eventsource');
-/*/
-var EventSource = require('event-source-stream')
-//*/
+var ESS = require('event-source-stream')
+var request = require("request");
 
 var AlexaSkill = require('./AlexaSkill'); // Module with AlexaSkill prototype and helper functions
 
@@ -17,7 +16,8 @@ var FlowdockSkill = function() { AlexaSkill.call(this, APP_ID); };
         userId = '191227',
         pass = 'password',
         org = 'rally-software',
-        flow = 'ie';
+        //flow = 'ie';
+        flow = 'amazingwalnuts';
 
 // Extend AlexaSkill
 FlowdockSkill.prototype = Object.create(AlexaSkill.prototype);
@@ -40,7 +40,8 @@ FlowdockSkill.prototype.eventHandlers.onSessionEnded = function (sessionEndedReq
 
 FlowdockSkill.prototype.intentHandlers = {
     "ObserveFlowIntent": handleObserveFlowIntentRequest,
-    "ListUsersIntent": handleListUsersIntent,
+    "ListUsersIntent": handleListUsersRequest,
+    "PostMessageIntent": handlePostMessageRequest,
     "AMAZON.HelpIntent": handleHelpRequest,
     "AMAZON.StopIntent": handleEndSession,
     "AMAZON.CancelIntent": handleEndSession 
@@ -48,7 +49,7 @@ FlowdockSkill.prototype.intentHandlers = {
 
 function getWelcomeResponse(response) {
     var speechOutput = {
-        speech: "<speak><p>Flowdock.</p> <p>Which flow do you want to monitor?</p></speak>",
+        speech: "<speak><p>Flowdock.</p> <p>Available options are watch, users, and send</p></speak>",
         type: AlexaSkill.speechOutputType.SSML
     };
     var repromptOutput = {
@@ -95,10 +96,15 @@ function handleObserveFlowIntentRequest(intent, session, response) {
         //handleMessage(JSON.parse(e.data));
     }
     */
-        callback("You've receive a message");
+
+    ESS('https://'+cred+':'+pass+'@stream.flowdock.com/flows?filter='+org+'/'+flow)
+    .on('data', function(data) {
+        callback("You've receive a message, it's legit");
+    });
+    //callback("You've receive a message, not really");
 }
 
-function handleListUsersIntent(intent, session, response) {
+function handleListUsersRequest(intent, session, response) {
     var callback = function(message) {
         response.tell({
             speech: message,  
@@ -108,8 +114,52 @@ function handleListUsersIntent(intent, session, response) {
     getUserListFromFlowdock('array', callback);
 }
 
-function getUserListFromFlowdock(returnType, callback) {
+function handlePostMessageRequest(intent, session, response) {
+    var message = "Hi KG";
+    var callback = function(message) {
+        response.tell({
+            speech: message,  
+            type: AlexaSkill.speechOutputType.PLAIN_TEXT
+        });
+    }
+    postMessageToFlowdock(message, callback);
+}
 
+function postMessageToFlowdock(message, callback) {
+    var url = 'https://'+cred+':'+pass+'@api.flowdock.com/flows/'+org+'/'+flow+'/messages';
+    var date = new Date();
+
+     var hour = date.getHours();
+     hour = (hour < 10 ? "0" : "") + hour;
+
+     var min  = date.getMinutes();
+     min = (min < 10 ? "0" : "") + min;
+
+    var options = { method: 'POST',
+        url: url,
+        qs: { 
+            event: 'message',
+            content: message + ' (message sent via Alexa)' 
+        },
+        headers: { 
+            'postman-token': '565ef014-b85a-14b8-69c8-29a393241cec',
+            'cache-control': 'no-cache' 
+        } 
+    };
+
+    request(options, function (error, response, body) {
+        var message = 'Message sent successfully';
+        if (error) {
+            //console.log('Error: '+error);
+            callback('Error sending message: ' + message);
+        } else {
+            callback('Message Sent: ' + message);
+        }
+        //console.log(body);
+    });
+}
+
+function getUserListFromFlowdock(returnType, callback) {
     var url = 'https://'+cred+":"+pass+'@api.flowdock.com/users/';
 
     https.get(url, function (res) {
