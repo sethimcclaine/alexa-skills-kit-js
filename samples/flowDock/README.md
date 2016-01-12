@@ -1,3 +1,10 @@
+#AWS Lambda
+https://console.aws.amazon.com/lambda/home?region=us-east-1#/functions/Flowdock?tab=code
+
+#Dev Console
+https://developer.amazon.com/edw/home.html#/skill/amzn1.echo-sdk-ams.app.c80c8427-b4a5-4029-ae7d-02e28433d1d7/info
+
+
 #Sample AWS Lambda function for Alexa
 A simple [AWS Lambda](http://aws.amazon.com/lambda) function that demonstrates how to write a skill for the Amazon Echo using the Alexa SDK.
 
