@@ -19,11 +19,29 @@
       ]
     },
     {
+      "intent": "SetFlowIntent",
+      "slots": [
+        {
+          "name": "flow",
+          "type": "FLOW"
+        }
+      ]
+    },
+    {
       "intent": "PostPrivateMessageIntent",
       "slots": [
         {
           "name": "msg",
           "type": "AMAZON.LITERAL"
+        }
+      ]
+    },
+    {
+      "intent": "SetRecipientIntent",
+      "slots": [
+        {
+          "name": "recipient",
+          "type": "USERS"
         }
       ]
     },

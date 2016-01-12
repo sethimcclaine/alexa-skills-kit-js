@@ -11,13 +11,24 @@ var AlexaSkill = require('./AlexaSkill'); // Module with AlexaSkill prototype an
 // FlowdockSkill is a child of AlexaSkill.
 var FlowdockSkill = function() { AlexaSkill.call(this, APP_ID); };
 
-
     var cred = '189d5c6a1f949e47c62eb886bbc81351',
         userId = '191227',
         pass = 'password',
         org = 'rally-software',
         //flow = 'ie';
-        flow = 'amazingwalnuts';
+        users = {
+            ashley: 128632,
+            kg: 30173,
+        }
+        flows = {
+            amazingwalnuts: 'amazingwalnuts',
+            developers: 'developers',
+            Foosball: 'fooseball',
+            Snowman: '(☃)',
+            Boulder: 'boulder'
+        },
+        flow = 'amazingwalnuts',
+        recipient = users['ashley'];
 
 // Extend AlexaSkill
 FlowdockSkill.prototype = Object.create(AlexaSkill.prototype);
@@ -42,43 +53,80 @@ FlowdockSkill.prototype.intentHandlers = {
     "ObserveFlowIntent": handleObserveFlowIntentRequest,
     "ListUsersIntent": handleListUsersRequest,
     "PostFlowMessageIntent": handlePostFlowMessageRequest,
+    "SetFlowIntent": handleSetFlowRequest,
     "PostPrivateMessageIntent": handlePostPrivateMessageRequest,
+    "SetRecipientIntent": handleSetRecipientRequest,
     "AMAZON.HelpIntent": handleHelpRequest,
     "AMAZON.StopIntent": handleEndSession,
     "AMAZON.CancelIntent": handleEndSession 
 };
 
-function getWelcomeResponse(response) {
-    var speechOutput = {
-        speech: "<speak><p>Flowdock... Ready for duty!</p></speak>",
+CANNED_MESSAGES = {
+    welcome: "<speak><p>Flowdock... Ready for duty!</p></speak>",
+    reprompt: "<speak><p>Available options are 'watch', 'users', 'private message' and 'flow message'</p></speak>",
+    help: "<speak><p>We can now interact with Flowdock, available options include 'watch', 'users', 'private message' and 'flow message'</p></speak>",
+    goodbye: "<speak><p>Flowdock... OUT!</p></speak>",
+}
+
+function getOutput(message) {
+    return {
+        speech: CANNED_MESSAGES[message],
         type: AlexaSkill.speechOutputType.SSML
-    };
-    var repromptOutput = {
-        speech: "Available options are 'watch', 'users', 'private message' and 'flow message'",
-        type: AlexaSkill.speechOutputType.PLAIN_TEXT
-    };
+    }
+}
+function responseCallback(message) {
+        response.ask({
+            speech: message,  
+            type: AlexaSkill.speechOutputType.PLAIN_TEXT
+        }, getOutput('reprompt'));
+}
+
+function getWelcomeResponse(response) {
+    /*
+    //@TODO do we need a card?
     var cardTitle = "This Day in History";//@TODO replace card title
     var cardOutput = "Flowdock. Which flow do you want to monitor?";
-    response.askWithCard(speechOutput, repromptOutput, cardTitle, cardOutput);
+    response.askWithCard(getOutput('welcome'), getOutput('reprompt'), cardTitle, cardOutput);
+    */
+    response.ask(getOutput('welcome'), getOutput('reprompt'));
 }
 
 function handleHelpRequest (intent, session, response) {
-    var speechOutput = {
-        speech: "With Flowdock, you can monitor flows for your organization",
-        type: AlexaSkill.speechOutputType.PLAIN_TEXT
-    };
-    var repromptOutput = {
-        speech: "Which flow would you like to monitor?",
-        type: AlexaSkill.speechOutputType.PLAIN_TEXT
-    };
-    response.ask(speechOutput, repromptOutput);
+    response.ask(getOutput('help'), getOutput('reprompt'));
 }
 
 function handleEndSession(intent, session, response) {
-    response.tell({
-            speech: "Flowdock... OUT!",
-            type: AlexaSkill.speechOutputType.PLAIN_TEXT
-    });
+    response.tell(getOuptut('gooodbye'));
+}
+
+function handleListUsersRequest(intent, session, response) {
+    getUserListFromFlowdock('array', responseCallback);
+}
+
+function handlePostPrivateMessageRequest(intent, session, response) {
+    postPrivateMessageToFlowdock(intent.slots.msg.value + '(message sent with Alexa)', responseCallback);
+}
+function handleSetRecipientRequest(intent, session, response) {
+    recipient = intent.slots.recipient.value;
+    //@TODO should this be `askWithCard`
+    response.ask({
+        speech: 'Current recipient has been set to: '+recipient,  
+        type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    }, getOutput('reprompt'));
+}
+
+
+function handleSetFlowRequest (intent, session, response) {
+    flow = intent.slots.flow.value;
+    //@TODO should this be `askWithCard`
+    response.ask({
+        speech: 'Current flow has been set to: '+flow,  
+        type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    }, getOutput('reprompt'));
+}
+
+function handlePostFlowMessageRequest(intent, session, response) {
+    postFlowMessageToFlowdock(intent.slots.msg.value, responseCallback);
 }
 
 function handleObserveFlowIntentRequest(intent, session, response) {
@@ -88,59 +136,19 @@ function handleObserveFlowIntentRequest(intent, session, response) {
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
         });
     };
-    /*
-    var jsonStream = new EventSource('https://'+cred+':'+pass+'@stream.flowdock.com/flows?filter='+org+'/'+flow);
-    jsonStream.onmessage = function (e) {
-
-        callback("You've receive a message");
-        //handleMessage(JSON.parse(e.data));
-    }
-    */
-
     ESS('https://'+cred+':'+pass+'@stream.flowdock.com/flows?filter='+org+'/'+flow)
     .on('data', function(data) {
         callback("You've receive a message, it's legit");
     });
-    //callback("You've receive a message, not really");
 }
 
-function handleListUsersRequest(intent, session, response) {
-    var callback = function(message) {
-        response.tell({
-            speech: message,  
-            type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        });
-    }
-    getUserListFromFlowdock('array', callback);
-}
-
-function handlePostPrivateMessageRequest(intent, session, response) {
-    var message = intent.slots.msg.value;
-    var callback = function(message) {
-        response.tell({
-            speech: message,  
-            type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        });
-    }
-    postPrivateMessageToFlowdock(message, callback);
-}
-function handlePostFlowMessageRequest(intent, session, response) {
-    var message = intent.slots.msg.value;
-    var callback = function(message) {
-        response.tell({
-            speech: message,  
-            type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        });
-    }
-    postFlowMessageToFlowdock(message, callback);
-}
 function postMessageToFlowdock(url, message, callback) {
 
     var options = { method: 'POST',
         url: url,
         qs: { 
             event: 'message',
-            tags: '#alexa',
+            tags: '#sent-with-alexa',
             content: message 
         },
         headers: { 
@@ -160,15 +168,11 @@ function postMessageToFlowdock(url, message, callback) {
 
 function postFlowMessageToFlowdock(message, callback) {
     var url = 'https://'+cred+':'+pass+'@api.flowdock.com/flows/'+org+'/'+flow+'/messages';
-
     postMessageToFlowdock(url, message, callback);
 }
 
 function postPrivateMessageToFlowdock(message, callback) {
-    var ashley = 128632;
-    var user = ashley;
-    var url = 'https://'+cred+':'+pass+'@api.flowdock.com/private/'+user+'/messages';
-
+    var url = 'https://'+cred+':'+pass+'@api.flowdock.com/private/'+recipient+'/messages';
     postMessageToFlowdock(url, message, callback);
 }
 

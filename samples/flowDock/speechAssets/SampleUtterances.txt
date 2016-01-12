@@ -13,6 +13,10 @@ ListUsersIntent list users
 PostFlowMessageIntent flow message 
 PostFlowMessageIntent flow message {one two three four five|msg}
 
+SetFlowIntent set flow {flow}
+SetFlowIntent update flow {flow}
+SetFlowIntent pick flow {flow}
+
 PostPrivateMessageIntent private message
 PostPrivateMessageIntent private message {one two three four five|msg}
 
